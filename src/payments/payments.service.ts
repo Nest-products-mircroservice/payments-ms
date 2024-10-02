@@ -9,7 +9,7 @@ export class PaymentsService {
   private readonly stripe = new Stripe(envs.stripe_secret);
 
   createPaymentSession(paymentSessionDto: PaymentSessionDto) {
-    const { currency, items } = paymentSessionDto;
+    const { currency, items, orderId } = paymentSessionDto;
 
     const lineItems = items.map((item) => {
       return {
@@ -26,7 +26,9 @@ export class PaymentsService {
 
     return this.stripe.checkout.sessions.create({
       payment_intent_data: {
-        metadata: {},
+        metadata: {
+          orderId,
+        },
       },
       line_items: lineItems,
       mode: 'payment',
@@ -38,9 +40,11 @@ export class PaymentsService {
   stripeWebhook(req: Request, res: Response) {
     const sig = req.headers['stripe-signature'];
 
-    const endpointSecret =
-      'whsec_52ebf075ba010bce616e53cfdc12386b19151a2aea33f39e6d96014d681aeb93';
+    // testing
+    // const endpointSecret =
+    //   'whsec_52ebf075ba010bce616e53cfdc12386b19151a2aea33f39e6d96014d681aeb93';
 
+    const endpointSecret = 'whsec_5Bbb7CYG9j5SRcMuQsnoLk9CVaEYTeMV';
     let event: Stripe.Event;
 
     try {
@@ -54,7 +58,18 @@ export class PaymentsService {
       return;
     }
 
-    console.log({ event });
+    // Handle the event
+    switch (event.type) {
+      case 'charge.succeeded':
+        const chargeSucceeded = event.data.object;
+        console.log({
+          metadata: chargeSucceeded.metadata,
+        });
+
+        break;
+      default:
+        console.log(`Unhandled event type ${event.type}`);
+    }
 
     return res.status(200).json(sig);
   }
