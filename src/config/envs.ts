@@ -6,6 +6,9 @@ const envsSchema = joi
   .object({
     PORT: joi.number().required(),
     STRIPE_SECRET: joi.string().required(),
+    STRIPE_SUCCESS_URL: joi.string().required(),
+    STRIPE_CANCEL_URL: joi.string().required(),
+    STRIPE_ENDPOINT_SECRET: joi.string().required(),
   })
   .unknown(true);
 
@@ -20,4 +23,7 @@ const envsVars: IEnvVarsInterface = value;
 export const envs = {
   port: envsVars.PORT,
   stripe_secret: envsVars.STRIPE_SECRET,
+  stripe_success_url: envsVars.STRIPE_SUCCESS_URL,
+  stripe_cancel_url: envsVars.STRIPE_CANCEL_URL,
+  stripe_endpoint_secret: envsVars.STRIPE_ENDPOINT_SECRET,
 };
