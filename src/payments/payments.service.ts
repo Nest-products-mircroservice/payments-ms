@@ -3,12 +3,13 @@ import { envs } from 'src/config';
 import Stripe from 'stripe';
 import { PaymentSessionDto } from './dto';
 import { Request, Response } from 'express';
+import { log } from 'console';
 
 @Injectable()
 export class PaymentsService {
   private readonly stripe = new Stripe(envs.stripe_secret);
 
-  createPaymentSession(paymentSessionDto: PaymentSessionDto) {
+  async createPaymentSession(paymentSessionDto: PaymentSessionDto) {
     const { currency, items, orderId } = paymentSessionDto;
 
     const lineItems = items.map((item) => {
@@ -24,7 +25,7 @@ export class PaymentsService {
       };
     });
 
-    return this.stripe.checkout.sessions.create({
+    const session = await this.stripe.checkout.sessions.create({
       payment_intent_data: {
         metadata: {
           orderId,
@@ -35,6 +36,12 @@ export class PaymentsService {
       success_url: envs.stripe_success_url,
       cancel_url: envs.stripe_cancel_url,
     });
+
+    return {
+      cancelUrl: session.cancel_url,
+      succesUrl: session.success_url,
+      url: session.url,
+    };
   }
 
   stripeWebhook(req: Request, res: Response) {
@@ -61,6 +68,14 @@ export class PaymentsService {
         console.log({
           metadata: chargeSucceeded.metadata,
         });
+
+        const payload = {
+          stripePaymentId: chargeSucceeded.id,
+          orderId: chargeSucceeded.metadata.orderId,
+          receiptUrl: chargeSucceeded.receipt_url,
+        };
+
+        console.log({ payload });
 
         break;
       default:

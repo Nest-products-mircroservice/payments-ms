@@ -8,4 +8,6 @@ export interface IEnvVarsInterface {
   STRIPE_CANCEL_URL: string;
 
   STRIPE_ENDPOINT_SECRET: string;
+
+  NATS_SERVERS: string[];
 }
